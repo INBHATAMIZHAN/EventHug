@@ -14,9 +14,14 @@ const connectDB = async () => {
     }
     if (isConnecting) return null;
 
+    const uri = process.env.MONGO_URI?.trim();
+    if (!uri) {
+        console.error("❌ [Database] MONGO_URI is not configured. Set it in Backend/.env.");
+        return null;
+    }
+
     isConnecting = true;
     try {
-        const uri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/eventhub";
         const isAtlas = uri.includes("mongodb+srv://") || uri.includes(".mongodb.net");
         
         const conn = await mongoose.connect(uri, {
@@ -41,11 +46,11 @@ const connectDB = async () => {
             console.error("💡 Hint: Ensure 0.0.0.0/0 is added in MongoDB Atlas -> 'Network Access'");
         }
 
-        // Auto-retry connection in background every 5 seconds until Atlas connects
+        // Retry the configured MongoDB connection in the background.
         if (!retryTimer) {
             retryTimer = setInterval(() => {
                 if (mongoose.connection.readyState !== 1) {
-                    console.log("🔄 Retrying MongoDB Atlas connection in background...");
+                    console.log("🔄 Retrying MongoDB connection in background...");
                     connectDB();
                 }
             }, 6000);
@@ -67,7 +72,7 @@ mongoose.connection.on("disconnected", () => {
 });
 
 mongoose.connection.on("reconnected", () => {
-    console.log("🔄 [Database] Reconnected to MongoDB Atlas!");
+    console.log("🔄 [Database] Reconnected to MongoDB!");
 });
 
 module.exports = connectDB;

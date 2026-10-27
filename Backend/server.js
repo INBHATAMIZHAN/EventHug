@@ -41,9 +41,13 @@ const getDbStatus = () => {
         connected: isConnected,
         stateCode: stateNum,
         status: states[stateNum] || "Unknown",
-        host: mongoose.connection.host || "ac-zgx4ee7-shard-00-00.e7buwka.mongodb.net",
-        name: mongoose.connection.name || "eventhub",
-        target: "MongoDB Atlas Cloud Cluster"
+        host: mongoose.connection.host || null,
+        name: mongoose.connection.name || null,
+        target: process.env.MONGO_URI
+            ? (process.env.MONGO_URI.includes("mongodb+srv://") || process.env.MONGO_URI.includes(".mongodb.net")
+                ? "MongoDB Atlas Cloud Cluster"
+                : "MongoDB configured by MONGO_URI")
+            : "MONGO_URI not configured"
     };
 };
 
